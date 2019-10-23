@@ -1,0 +1,71 @@
+1.    job  test p.o.c
+
+2.    adapt json for Metacontroller
+2.X.    do template in ksonnet
+
+3.    Create CRD & Common Components in Metacontroller
+
+4.    Test Across Devel
+
+
+
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rsync-volumes-job
+spec:
+  template:
+    spec:
+      containers:
+      - name: rsync-pod
+        env:
+        - name: POSTGRESQL_USER
+          valueFrom:
+            secretKeyRef:
+              key: database-user
+              name: postgres
+        - name: POSTGRESQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: database-password
+              name: postgres
+        - name: POSTGRESQL_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database-name
+              name: postgres
+        image: docker.io/centos/postgresql-96-centos7@sha256:4bca0d7a1e613cb30229056b7c69880d972663070512c3bb31b2de4e4562299d
+        command: ["rsync","-a","--progress", "/mount1/","/mount2/"]
+      restartPolicy: OnFailure
+  backoffLimit: 4
+
+
+
+
+ pg_dump -U  $POSTGRESQL_USER -v -d wirecard --format=tar > /tmp/pg_backup/wirecard.tar
+
+
+ pg_restore  -h localhost -p 5432 -U postgres -d  wirecard -v /tmp/wirecard.tar 
+
+
+
+
+
+ pg_restore -v -h 10.10.7.201 -p 32720 -C -U $POSTGRESQL_USER -W $POSTGRESQL_PASSWORD -f /tmp/wirecard.tar 
+
+
+
+
+
+bash -c 'pg_dump --dbname=postgresql://postgres:postgres@postgresql-persistent.development.svc:5432/wirecard -v -h postgresql-persistent.development.svc -p 5432 --format=tar -f /tmp/backup.tar'
+
+
+
+#####   backoffLimit   - @TODO
+
+
+
+
+
+

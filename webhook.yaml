@@ -1,0 +1,35 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: export-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: export-controller
+  template:
+    metadata:
+      labels:
+        app: export-controller
+    spec:
+      containers:
+      - name: controller
+        image: python:2.7
+        command: ["python", "/hooks/sync.py"]
+        volumeMounts:
+        - name: hooks
+          mountPath: /hooks
+      volumes:
+      - name: hooks
+        configMap:
+          name: export-controller
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: export-controller
+spec:
+  selector:
+    app: export-controller
+  ports:
+  - port: 80
